@@ -3,58 +3,353 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Captioning Tool</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Import Axios -->
+    <title>AI Image Caption Generator | Gemini Vision</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        #captionContainer {
-            display: block; /* Make it always visible */
-            width: 100%; /* Full width of its parent column */
-            height: auto; /* Adjust height to content or use a fixed height */
-            border: 2px solid #007bff; /* Blue border for visibility */
-            border-radius: 5px; /* Slightly rounded corners for aesthetics */
-            overflow: hidden; /* Prevent content from spilling out */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --card-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            --hover-shadow: 0 15px 50px rgba(0,0,0,0.15);
         }
 
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .card-custom {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out;
+            height: 100%;
+        }
+
+        .card-custom:hover {
+            box-shadow: var(--hover-shadow);
+            transform: translateY(-5px);
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .image-preview-container {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        #imagePreview {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .btn-custom {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            padding: 12px 35px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            width: 100%;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            color: white;
+        }
+
+        .btn-speak {
+            background: var(--success-gradient);
+            border: none;
+            color: white;
+            padding: 12px 35px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+            width: 100%;
+        }
+
+        .btn-speak:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
+            color: white;
+        }
+
+        .btn-speak:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #captionContainer {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 15px;
+            padding: 25px;
+            min-height: 200px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        #captionContainer.has-caption {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .caption-label {
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #imageCaption {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+        }
+
+        .feature-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.9rem;
+            margin: 5px;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            color: #667eea;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            color: #333;
+            margin-top: 30px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .info-card h5 {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .info-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-card li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #555;
+        }
+
+        .info-card i {
+            color: #667eea;
+        }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="row">
-            <!-- Left Column for Upload and Preview -->
-            
-
-            <div class="col-md-6">
-                <!-- Image Preview -->
-                <div class="mt-3">
-                    <img id="imagePreview" src="https://placehold.co/500x300/orange/white" alt="Image preview" class="img-fluid">
-                </div>
-                
-                <form id="imageUploadForm">
-                    <div class="form-group">
-                        <label for="imageInput">Upload Image</label>
-                        <input type="file" class="form-control-file" id="imageInput" accept="image/*">
-                    </div>
-                    <button type="button" id="submitBtn" class="btn btn-primary">Submit</button>
-                </form>
-                
+    <div class="container main-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-magic"></i> AI Image Caption Generator</h1>
+            <p>Powered by Google Gemini 2.0 Flash | Making Images Accessible</p>
+            <div class="mt-3">
+                <span class="feature-badge"><i class="fas fa-brain"></i> AI Vision</span>
+                <span class="feature-badge"><i class="fas fa-volume-up"></i> Text-to-Speech</span>
+                <span class="feature-badge"><i class="fas fa-universal-access"></i> Accessibility</span>
             </div>
-            <!-- Right Column for Caption Display -->
-            <div class="col-md-6">
-                <div id="captionContainer" class="border p-3" style="height: 200px;">
-                    <p id="imageCaption">Caption will be displayed here.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column: Upload & Preview -->
+            <div class="col-lg-6">
+                <div class="card-custom">
+                    <h4 class="mb-4"><i class="fas fa-upload"></i> Upload Your Image</h4>
                     
+                    <!-- Upload Area -->
+                    <label for="imageInput" class="upload-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h5>Click to Upload Image</h5>
+                        <p class="text-muted mb-0">or drag and drop</p>
+                        <small class="text-muted">Supports: JPG, PNG, GIF</small>
+                        <input type="file" id="imageInput" accept="image/*">
+                    </label>
+
+                    <!-- Image Preview -->
+                    <div class="image-preview-container">
+                        <img id="imagePreview" src="https://placehold.co/600x400/667eea/white?text=Upload+an+Image" alt="Image preview">
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="button" id="submitBtn" class="btn-custom">
+                        <i class="fas fa-wand-magic-sparkles"></i> Generate Caption
+                    </button>
+
+                    <!-- Loading Spinner -->
+                    <div class="loading-spinner mt-3" id="loadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Analyzing image with AI...</p>
+                    </div>
                 </div>
-                <div class="mt-1">
-                    <button id="speakBtn" class="btn btn-secondary">Hear Caption</button>
+            </div>
+
+            <!-- Right Column: Caption Display -->
+            <div class="col-lg-6">
+                <div class="card-custom">
+                    <h4 class="mb-4"><i class="fas fa-comment-dots"></i> AI-Generated Caption</h4>
+                    
+                    <div id="captionContainer">
+                        <div class="caption-label">
+                            <i class="fas fa-robot"></i> Caption Output
+                        </div>
+                        <p id="imageCaption">Your AI-generated caption will appear here. Upload an image and click "Generate Caption" to get started!</p>
+                    </div>
+
+                    <!-- Speak Button -->
+                    <button id="speakBtn" class="btn-speak">
+                        <i class="fas fa-volume-high"></i> Listen to Caption
+                    </button>
+
+                    <!-- How to Use -->
+                    <div class="info-card mt-3">
+                        <h5><i class="fas fa-lightbulb"></i> How to Use</h5>
+                        <ul>
+                            <li><i class="fas fa-check-circle"></i> Upload your image</li>
+                            <li><i class="fas fa-check-circle"></i> AI analyzes the content</li>
+                            <li><i class="fas fa-check-circle"></i> Get descriptive caption</li>
+                            <li><i class="fas fa-check-circle"></i> Listen with text-to-speech</li>
+                        </ul>
+                    </div>
                 </div>
-                
             </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

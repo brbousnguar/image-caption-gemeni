@@ -1,40 +1,147 @@
-# Build an Image Captioning Tool for Visually Impaired Users with Gemini
-This is the repository for the LinkedIn Learning course Build an Image Captioning Tool for Visually Impaired Users with Gemini. The full course is available from [LinkedIn Learning][lil-course-url].
+# Image Caption Generator with Google Gemini
 
-![lil-thumbnail-url]
+An accessible web application that generates descriptive captions for images using Google's **Gemini 2.0 Flash** AI model, specifically designed to help visually impaired users better experience visual content on the web.
 
-When you’re designing for the web, it’s imperative that your designs are accessible to as many people as possible, and this includes visually impaired users. While there are many tools available to help you in this design task, artificial intelligence is making this easier than ever. In this course, software developer Fikayo Adepoju shows you how to use Google’s Gemini API to build an image caption generator that helps visually impaired users to better experience the web. Get hands-on experience with the Gemini API as Fikayo guides you through the building of the application from start to finish. Learn how to build the interface, connect the backend to Gemini, and then connect the frontend to the API. Whether you’re a developer, data scientist, or just have an interest in AI, join Fikayo to see how the Gemini API can make life easier for both you and your users.
+## 🤖 AI Model & SDK
 
-_See the readme file in the main branch for updated instructions and information._
-## Instructions
-This repository has branches for each of the videos in the course. You can use the branch pop up menu in github to switch to a specific branch and take a look at the course at that stage, or you can add `/tree/BRANCH_NAME` to the URL to go to the branch you want to access.
+This project leverages:
+- **Google Gemini 2.0 Flash** - A state-of-the-art multimodal AI model capable of understanding and analyzing images to generate accurate, contextual descriptions
+- **@google/generative-ai SDK (v0.2.1)** - Official Google Generative AI JavaScript SDK for seamless integration with Gemini models
 
-## Branches
-The branches are structured to correspond to the videos in the course. The naming convention is `CHAPTER#_MOVIE#`. As an example, the branch named `02_03` corresponds to the second chapter and the third video in that chapter. 
-Some branches will have a beginning and an end state. These are marked with the letters `b` for "beginning" and `e` for "end". The `b` branch contains the code as it is at the beginning of the movie. The `e` branch contains the code as it is at the end of the movie. The `main` branch holds the final state of the code when in the course.
+## 🔊 Text-to-Speech
 
-When switching from one exercise files branch to the next after making changes to the files, you may get a message like this:
+The text-to-speech functionality uses the **native Web Speech API** (`SpeechSynthesisUtterance`), built directly into modern browsers. This means:
+- ✅ No external TTS API required (not using Gemini API for speech)
+- ✅ No additional costs or API quotas for speech synthesis
+- ✅ Works offline once the page is loaded
+- ✅ Available in all modern browsers (Chrome, Firefox, Safari, Edge)
 
-    error: Your local changes to the following files would be overwritten by checkout:        [files]
-    Please commit your changes or stash them before you switch branches.
-    Aborting
+## Features
 
-To resolve this issue:
-	
-    Add changes to git using this command: git add .
-	Commit changes using this command: git commit -m "some message"
+- 📸 **Image Upload & Preview** - Upload images and see a live preview
+- 🤖 **AI-Powered Captions** - Generate descriptive captions using Google Gemini 2.0 Flash
+- 🔊 **Text-to-Speech** - Listen to captions with built-in speech synthesis
+- ♿ **Accessibility First** - Built with visually impaired users in mind
+- 🎨 **Clean UI** - Simple, intuitive Bootstrap interface
 
-### Instructor
+## Tech Stack
 
-Fikayo Adepoju
+### Frontend
+- HTML5
+- **CSS3 with Custom Styling**
+  - Bootstrap 5.3 for responsive grid system
+  - Custom CSS with gradient backgrounds and modern card designs
+  - Font Awesome 6.4 icons for visual elements
+  - Smooth animations and hover effects
+  - Glass-morphism and shadow effects for depth
+- Vanilla JavaScript
+- Axios for API calls
+- **Web Speech API (Native Browser TTS)** - `SpeechSynthesisUtterance` for text-to-speech, no external API needed
 
-Technical Writer | Software Developer                 
+### Backend
+- Node.js
+- Express.js
+- **Google Generative AI SDK** (@google/generative-ai)
+  - **Model: Gemini 2.0 Flash** - Advanced multimodal AI for image understanding
+- Multer for file uploads
+- CORS enabled
 
-Check out my other courses on [LinkedIn Learning](https://www.linkedin.com/learning/instructors/fikayo-adepoju?u=104).
+## Prerequisites
 
+- Node.js (v14 or higher)
+- Google Gemini API key ([Get one here](https://makersuite.google.com/app/apikey))
 
-[0]: # (Replace these placeholder URLs with actual course URLs)
+## Installation
 
-[lil-course-url]: https://www.linkedin.com/learning/build-an-image-captioning-tool-for-visually-impaired-users-with-gemini
-[lil-thumbnail-url]: https://media.licdn.com/dms/image/D560DAQHvLDVro1C27Q/learning-public-crop_675_1200/0/1715978287117?e=2147483647&v=beta&t=mPW4isxbzts-zauVcIBJp8wytJhBogouPsZtaIzR8Fg
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/brbousnguar/image-caption-gemeni.git
+   cd image-caption-gemeni
+   ```
 
+2. **Install backend dependencies**
+   ```bash
+   cd backend
+   npm install
+   ```
+
+3. **Set up environment variables**
+   
+   Create a `.env` file in the `backend` directory:
+   ```
+   API_KEY=your_gemini_api_key_here
+   PORT=3000
+   ```
+
+## Running the Application
+
+1. **Start the backend server**
+   ```bash
+   cd backend
+   node server.js
+   ```
+   The server will run on `http://localhost:3000`
+
+2. **Open the frontend**
+   
+   Open `frontend/index.html` in your browser, or serve it using a local server:
+   ```bash
+   npx http-server ./frontend
+   ```
+   Then navigate to `http://localhost:8080`
+
+## Usage
+
+1. Click "Choose File" to select an image
+2. Preview your image
+3. Click "Get Caption" to generate an AI description
+4. Use the "Speak" button to hear the caption read aloud
+
+## API Endpoints
+
+### `GET /`
+Welcome endpoint to verify the API is running.
+
+### `POST /caption-image`
+Generates a caption for an uploaded image.
+
+**Request:**
+- Method: `POST`
+- Content-Type: `multipart/form-data`
+- Body: `file` (image file)
+
+**Response:**
+- Success: Plain text caption
+- Error: 500 with error message
+
+## Project Structure
+
+```
+image-caption-gemeni/
+├── backend/
+│   ├── server.js          # Express server & API endpoints
+│   ├── package.json       # Backend dependencies
+│   ├── .env              # Environment variables (not in repo)
+│   └── uploads/          # Temporary image storage
+├── frontend/
+│   ├── index.html        # Main UI
+│   └── script.js         # Frontend logic
+├── LICENSE
+└── README.md
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Authors
+
+- [@brbousnguar](https://github.com/brbousnguar) - b.bousnguar@gmail.com
+
+## License
+
+This project is licensed under the terms specified in the LICENSE file.
+
+## Acknowledgments
+
+Based on the LinkedIn Learning course "Build an Image Captioning Tool for Visually Impaired Users with Gemini" by Fikayo Adepoju.

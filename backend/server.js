@@ -13,13 +13,19 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// Configure CORS to allow requests from your frontend
+app.use(cors({
+    origin: 'http://localhost:8080',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
+    credentials: true
+}));
 app.use(bodyParser.json());
 
 const googleGenAI = new GoogleGenerativeAI(process.env.API_KEY)
 
 const geminiProModel = googleGenAI.getGenerativeModel({
-    model: "gemini-pro-vision"
+    model: "gemini-2.0-flash"
 })
 
 // Configure Multer
@@ -40,31 +46,36 @@ app.get("/", (req, res) => {
 
 app.post("/caption-image", upload.single('file'), async (req, res) => {
 
-    console.log(process.env.API_KEY);
+    try {
+        //console.log(process.env.API_KEY);
 
-    const filePath = req.file.path;
-    const mimeType = mime.lookup(filePath);
+        const filePath = req.file.path;
+        const mimeType = mime.lookup(filePath);
 
-    const imagePath = {
-        inlineData: {
-          data: Buffer.from(fs.readFileSync(filePath)).toString("base64"),
-          mimeType
-        },
-    };
+        const imagePath = {
+            inlineData: {
+              data: Buffer.from(fs.readFileSync(filePath)).toString("base64"),
+              mimeType
+            },
+        };
 
-    const prompt = "Write an appropriate caption for this image to help visually-impaired users";
+        const prompt = "Write an appropriate caption for this image to help visually-impaired users";
 
-    const images = [
-        imagePath
-    ]
+        const images = [
+            imagePath
+        ]
 
-    const request = await geminiProModel.generateContent([prompt, ...images]);
-    const response = await request.response;
-    const caption = response.text();
-    console.log(response);
-    console.log(caption);
+        const request = await geminiProModel.generateContent([prompt, ...images]);
+        const response = await request.response;
+        const caption = response.text();
+        console.log(response);
+        console.log(caption);
 
-    res.send(caption);
+        res.send(caption);
+    } catch (error) {
+        console.error("Error generating caption:", error);
+        res.status(500).send("Error generating caption: " + error.message);
+    }
 
 })
 

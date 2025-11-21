@@ -15,17 +15,28 @@ document.getElementById('imageInput').addEventListener('change', function() {
 function displayCaption(caption) {
     var captionContainer = document.getElementById('captionContainer');
     var imageCaption = document.getElementById('imageCaption');
+    
     imageCaption.textContent = caption;
     captionContainer.style.display = "block";
+    captionContainer.classList.add('has-caption');
 }
 
 //Submit button
 document.getElementById('submitBtn').addEventListener('click', function() {
     var imageInput = document.getElementById('imageInput');
+    var loadingSpinner = document.getElementById('loadingSpinner');
+    
     if(imageInput.files.length > 0){
         var file = imageInput.files[0];
+        
+        // Show loading, disable submit button
+        loadingSpinner.classList.add('active');
+        this.disabled = true;
+        
         displayCaption("Processing..."); // Placeholder text
         getCaptionForImage(file); // Mock function to simulate getting a caption
+    } else {
+        alert('Please select an image first!');
     }
 });
 
@@ -33,6 +44,8 @@ document.getElementById('submitBtn').addEventListener('click', function() {
 //Process Caption
 // It's an API call so we use async/await
 async function getCaptionForImage(imageFile){
+    var loadingSpinner = document.getElementById('loadingSpinner');
+    var submitBtn = document.getElementById('submitBtn');
     
     // Create a FormData object and append the file
     let formData = new FormData();
@@ -50,18 +63,26 @@ async function getCaptionForImage(imageFile){
             caption = response.data;
             console.log(caption); 
             displayCaption(caption); 
-            
         }
     } catch (error) {
         // Handle error
-        displayCaption(error);
+        console.error('Error:', error);
+        displayCaption('Error generating caption. Please try again.');
+    } finally {
+        // Hide loading, re-enable button
+        loadingSpinner.classList.remove('active');
+        submitBtn.disabled = false;
     }
 }
 
 
 // Voicing Button
 document.getElementById('speakBtn').addEventListener('click', function() {
-    speakText(caption)
+    if (!caption || caption === "Processing...") {
+        alert('Please generate a caption first!');
+        return;
+    }
+    speakText(caption);
 });
 
 // Speech function
