@@ -31,6 +31,7 @@ document.getElementById('submitBtn').addEventListener('click', function() {
 
 
 //Process Caption
+// It's an API call so we use async/await
 async function getCaptionForImage(imageFile){
     
     // Create a FormData object and append the file
